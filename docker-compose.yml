@@ -1,0 +1,15 @@
+services:
+  laravel:
+    image: bitnami/laravel:11.6.0
+    container_name: laravel
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=srv1271.hstgr.io
+      - DB_PORT=3306
+      - DB_USERNAME=u411677469_shop
+      - DB_DATABASE=u411677469_proyecto2
+      - DB_PASSWORD="LaPineda2025."
+    volumes:
+      - ./shop:/app # Si no usas SELinux, quita `:z`
