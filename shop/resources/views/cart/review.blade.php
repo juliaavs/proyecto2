@@ -12,7 +12,7 @@
                     @csrf
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="nombre">Nombre</label>
+                            <label for="nombre">Nombre del user</label>
                             <input type="text" class="form-control" id="nombre" name="nombre" required>
                         </div>
                         <div class="col-md-6 mb-3">
