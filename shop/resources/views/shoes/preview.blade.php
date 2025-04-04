@@ -28,37 +28,17 @@
                                 @endforeach
                             </div>
 
-                            {{-- Tabla de tallas --}}
-                            <h5>Seleccionar Talla:</h5>
-                            <div class="table-responsive">
-                                <table class="table table-bordered text-center">
-                                    <thead>
-                                        <tr>
-                                            <th>Talla</th>
-                                            <th>Disponibilidad</th>
-                                            <th>Seleccionar</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($sizes as $size)
-                                            <tr>
-                                                <td>{{ $size->name }}</td>
-                                                <td>
-                                                    @if($shoe->stock > 0)
-                                                        <span class="badge bg-success">Disponible</span>
-                                                    @else
-                                                        <span class="badge bg-danger">Agotado</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if($shoe->stock > 0)
-                                                        <input type="radio" name="size_id" value="{{ $size->id }}">
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                            
+                            {{-- Selección de tallas --}}
+                            <h5>Elige una Talla:</h5>
+                            <div class="d-flex gap-2 flex-wrap">
+                                @foreach($sizes as $size)
+                                    @if($shoe->stock > 0)
+                                        <button class="btn btn-outline-primary size-btn" data-size-id="{{ $size->id }}">
+                                            {{ $size->name }}
+                                        </button>
+                                    @endif
+                                @endforeach
                             </div>
 
                             {{-- Botones de acción --}}
@@ -67,15 +47,15 @@
                                     @csrf
                                     <input type="hidden" name="selected_color" id="selected-color" value="">
                                     <input type="hidden" name="selected_size" id="selected-size" value="">
-                                    <button type="submit" class="btn btn-success btn-lg">
-                                        <i class="bi bi-cart-plus"></i> Agregar al carrito
-                                    </button>
+                                    
                                 </form>
 
                                 <button onclick="window.location='{{ route('merchandising.index') }}';" class="btn btn-info btn-lg">
                                     Personalizar
                                 </button>
-
+                                <button type="submit" class="btn btn-dark btn-lg">
+                                        <i class="bi bi-cart-plus"></i> Agregar al carrito
+                                </button>
                                 <a href="{{ route('shoes.index') }}" class="btn btn-outline-secondary btn-lg">
                                     <i class="bi bi-arrow-left"></i> Volver a la tienda
                                 </a>
@@ -104,12 +84,37 @@
         });
 
         // Manejar la selección de talla
-        document.querySelectorAll('input[name="size_id"]').forEach(input => {
-            input.addEventListener("change", function () {
-                selectedSizeInput.value = this.value;
+        document.querySelectorAll(".size-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                document.querySelectorAll(".size-btn").forEach(btn => btn.classList.remove("active"));
+                this.classList.add("active");
+                selectedSizeInput.value = this.getAttribute("data-size-id");
             });
         });
     });
 </script>
+
+<style>
+    /* Estilo por defecto: borde gris, fondo blanco, texto negro */
+    .size-btn {
+        background-color: #fff; /* Fondo blanco */
+        color: #000; /* Texto negro */
+        border: 1px solid #ccc; /* Borde gris */
+        transition: all 0.3s ease; /* Transición suave */
+    }
+
+    /* Al pasar el mouse: borde negro */
+    .size-btn:hover {
+        border-color: #000; /* Borde negro */
+
+    }
+
+    /* Cuando está seleccionado (activo): borde negro, fondo blanco, texto negro */
+    .size-btn.active {
+        border-color: #000 !important; /* Borde negro */
+        background-color: #fff !important; /* Fondo blanco */
+        color: #000 !important; /* Texto negro */
+    }
+</style>
 
 @endsection
