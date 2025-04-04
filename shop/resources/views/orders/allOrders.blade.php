@@ -72,7 +72,8 @@
                         <td>{{ $order->total }} €</td>
                         <td>{{ $order->created_at }}</td>
                         <td>
-                            <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-primary btn-sm">Editar</a>
+                            <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-primary btn-sm"><i class="bi bi-gear-fill"></i></a>
+                            <a href="/invoice/{{ $order->id }}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-pdf-fill"></i></a>
                         </td>
                     </tr>
                 @endforeach

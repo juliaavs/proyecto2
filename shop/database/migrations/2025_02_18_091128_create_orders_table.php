@@ -10,22 +10,30 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            // Si tu pedido está asociado a un usuario:
+
+            // Relación con el usuario (puede ser null)
             $table->unsignedBigInteger('user_id')->nullable();
 
-            // Status del pedido, por ejemplo: 'pending', 'paid', 'shipped', etc.
+            // Estado del pedido
             $table->string('status')->default('pending');
 
-            // Total del pedido
-            $table->decimal('total', 10, 2)->default(0);
+            // Código de promoción aplicado (opcional)
+            $table->string('promo_code')->nullable();
+
+            // Dirección de envío
+            $table->string('street');
+            $table->string('number')->nullable();
+            $table->string('city');
+            $table->string('state')->nullable();
+            $table->string('zip_code');
+            $table->string('country');
 
             $table->timestamps();
 
-            // Foreign Key: Si deseas enlazar con la tabla users
+            // Clave foránea al usuario
             $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('set null'); 
+                  ->references('id')->on('users')
+                  ->onDelete('set null');
         });
     }
 

@@ -279,7 +279,7 @@ public function startPayment(Request $request)
 
 
 
-    public function saveShipping(Request $request)
+public function saveShipping(Request $request)
 {
     $request->validate([
         'street' => 'required|string|max:255',

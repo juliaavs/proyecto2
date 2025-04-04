@@ -13,6 +13,10 @@ return new class extends Migration
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('product_id');
             $table->integer('quantity')->default(1);
+            // Precio original por unidad (sin descuento aplicado)
+            $table->decimal('price', 10, 2);
+            // Porcentaje de descuento aplicado (ej: 20 = 20%)
+            $table->integer('discount')->default(0);
             $table->timestamps();
 
             // Claves foráneas (ajusta según tus necesidades)
