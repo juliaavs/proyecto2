@@ -243,9 +243,15 @@ public function startPayment(Request $request)
 
     // Crear los items para la sesión de pago
     $lineItems = [];
+
     foreach ($cartItems as $item) {
         $name = ($item->shoe->brand->name ?? '') . ' ' . ($item->shoe->model->name ?? 'Zapato desconocido');
-        $price = $item->shoe->price ?? 0;
+        $basePrice = $item->shoe->price ?? 0;
+        $discount = $item->shoe->discount ?? 0;
+
+        $finalPrice = $discount > 0
+            ? round($basePrice * (1 - $discount / 100), 2)
+            : $basePrice;
 
         $lineItems[] = [
             'price_data' => [
@@ -253,10 +259,9 @@ public function startPayment(Request $request)
                 'product_data' => [
                     'name' => $name,
                 ],
-                'unit_amount' => intval($price * 100), // en céntimos
+                'unit_amount' => intval($finalPrice * 100), // Stripe requiere céntimos
             ],
             'quantity' => $item->quantity,
-            
         ];
     }
 

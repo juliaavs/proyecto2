@@ -8,7 +8,7 @@
             <h1 class="mb-4 text-center">{{ $category->name }}</h1>
             
             <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
-                @foreach($category->products as $shoe)
+                @foreach($products as $shoe)
                     <div class="col">
                         <div class="card h-100 shadow-sm">
                             <div class="position-relative">

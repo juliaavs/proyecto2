@@ -12,49 +12,103 @@
         <button class="btn btn-secondary">Ir a la sección deportiva</button>
         <br>
         <br>
+        
         <h4>Últimas Novedades</h4>
 
-
-    
-        <div class="container mt-4">
-            <!-- Para pantallas grandes (Grid) -->
-            <div class="row image-container d-none d-md-flex">
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeDunk.png') }}" alt="Imagen 1"></div>
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeRunning.png') }}" alt="Imagen 2"></div>
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeDunk.png') }}" alt="Imagen 3"></div>
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeRunning.png') }}" alt="Imagen 4"></div>
+<div class="container mt-4">
+    <!-- Pantallas grandes -->
+    <div class="row image-container d-none d-md-flex">
+        @foreach ($ultimosProductos as $producto)
+            <div class="col-6 col-md-3 position-relative text-center">
+                <a href="{{ route('shoes.preview', $producto->id) }}">
+                    <img src="{{ $producto->image }}" alt="{{ $producto->model->name }}" class="img-fluid mb-2">
+                </a>
+                <div>
+                    <strong>{{ $producto->brand->name }} {{ $producto->model->name }}</strong><br>
+                    @if ($producto->discount > 0)
+                        <del>€{{ number_format($producto->price, 2) }}</del>
+                        <span class="text-danger">€{{ number_format($producto->price * (1 - $producto->discount / 100), 2) }}</span>
+                    @else
+                        €{{ number_format($producto->price, 2) }}
+                    @endif
+                </div>
+                @if ($producto->discount > 0)
+                    <span class="badge bg-danger position-absolute top-0 start-0 m-2">-{{ $producto->discount }}%</span>
+                @endif
             </div>
+        @endforeach
+    </div>
 
-            <!-- Para móviles (Scroll horizontal) -->
-            <div class="image-slider d-flex d-md-none">
-                <img src="https://via.placeholder.com/100" alt="Imagen 1">
-                <img src="https://via.placeholder.com/100" alt="Imagen 2">
-                <img src="https://via.placeholder.com/100" alt="Imagen 3">
-                <img src="https://via.placeholder.com/100" alt="Imagen 4">
-            </div>
-        </div>
-        
-        <br>
-        <br>
-        <h4>Nuestros Destacados</h4>
+    <!-- Móviles -->
+    <div class="image-slider d-flex d-md-none overflow-auto">
+        @foreach ($ultimosProductos as $producto)
+            <a href="{{ route('shoes.preview', $producto->id) }}" class="me-2 text-center" style="flex: 0 0 auto;">
+                <img src="{{ $producto->image }}" alt="{{ $producto->model->name }}" width="100">
+                <div style="font-size: 0.9em;">
+                    {{ $producto->brand->name }} {{ $producto->model->name }}<br>
+                    @if ($producto->discount > 0)
+                        <del>€{{ number_format($producto->price, 2) }}</del><br>
+                        <span class="text-danger">€{{ number_format($producto->price * (1 - $producto->discount / 100), 2) }}</span>
+                    @else
+                        €{{ number_format($producto->price, 2) }}
+                    @endif
+                </div>
+            </a>
+        @endforeach
+    </div>
+</div>
 
-        <div class="container mt-4">
-            <!-- Para pantallas grandes (Grid) -->
-            <div class="row image-container d-none d-md-flex">
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeDunk.png') }}" alt="Imagen 1"></div>
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeRunning.png') }}" alt="Imagen 2"></div>
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeDunk.png') }}" alt="Imagen 3"></div>
-                <div class="col-6 col-md-3"><img src="{{ asset('img/nikeRunning.png') }}" alt="Imagen 4"></div>
-            </div>
+<br><br>
+<h4>Nuestros Destacados</h4>
 
-            <!-- Para móviles (Scroll horizontal) -->
-            <div class="image-slider d-flex d-md-none">
-                <img src="https://via.placeholder.com/100" alt="Imagen 1">
-                <img src="https://via.placeholder.com/100" alt="Imagen 2">
-                <img src="https://via.placeholder.com/100" alt="Imagen 3">
-                <img src="https://via.placeholder.com/100" alt="Imagen 4">
+<div class="container mt-4">
+    <!-- Pantallas grandes -->
+    <div class="row image-container d-none d-md-flex">
+        @foreach ($productosDestacados as $producto)
+            <div class="col-6 col-md-3 position-relative text-center">
+                <a href="{{ route('shoes.preview', $producto->id) }}">
+                    <img src="{{ $producto->image }}" alt="{{ $producto->model->name }}" class="img-fluid mb-2">
+                </a>
+                <div>
+                    <strong>{{ $producto->brand->name }} {{ $producto->model->name }}</strong><br>
+                    @if ($producto->discount > 0)
+                        <del>€{{ number_format($producto->price, 2) }}</del>
+                        <span class="text-danger">€{{ number_format($producto->price * (1 - $producto->discount / 100), 2) }}</span>
+                    @else
+                        €{{ number_format($producto->price, 2) }}
+                    @endif
+                </div>
+                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Destacado</span>
+                @if ($producto->discount > 0)
+                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">-{{ $producto->discount }}%</span>
+                @endif
             </div>
-        </div>
+        @endforeach
+    </div>
+
+    <!-- Móviles -->
+    <div class="image-slider d-flex d-md-none overflow-auto">
+        @foreach ($productosDestacados as $producto)
+            <a href="{{ route('shoes.preview', $producto->id) }}" class="me-2 text-center" style="flex: 0 0 auto;">
+                <img src="{{ $producto->image }}" alt="{{ $producto->model->name }}" width="100">
+                <div style="font-size: 0.9em;">
+                    {{ $producto->brand->name }} {{ $producto->model->name }}<br>
+                    @if ($producto->discount > 0)
+                        <del>€{{ number_format($producto->price, 2) }}</del><br>
+                        <span class="text-danger">€{{ number_format($producto->price * (1 - $producto->discount / 100), 2) }}</span>
+                    @else
+                        €{{ number_format($producto->price, 2) }}
+                    @endif
+                </div>
+            </a>
+        @endforeach
+    </div>
+</div>
+
+<!-- Banner de Bike -->
+<div class="container mt-4 text-center">
+    <img src="https://postersbase.com/cdn/shop/articles/kanye-west_6a1e735a-5683-4da6-ae1d-2562f2c25af6.png?v=1716304046" alt="Banner de Bicicletas" class="img-fluid mb-2" style="width: 100% important; border-radius: 0px;">
+    </div>
 
     </div>
 @endsection

@@ -113,22 +113,24 @@ class ShoeController extends Controller
 
     public function preview(Shoe $shoe)
     {
-        $shoe = Shoe::with(['brand', 'model'])->findOrFail($shoe->id);
+        $shoe = Shoe::with(['brand', 'model', 'color'])->findOrFail($shoe->id);
 
         // Obtener colores disponibles para este zapato
-        $colors = Color::whereHas('shoes', function ($query) use ($shoe) {
+        $colors = Color::with(['shoes' => function ($query) use ($shoe) {
             $query->where('model_id', $shoe->model_id)
                 ->where('brand_id', $shoe->brand_id);
-        })->get();
+        }])->get();
 
-        // Obtener tallas disponibles para este zapato
+        // Obtener tallas del mismo modelo, marca y color
         $sizes = Size::whereHas('shoes', function ($query) use ($shoe) {
             $query->where('model_id', $shoe->model_id)
-                ->where('brand_id', $shoe->brand_id);
+                ->where('brand_id', $shoe->brand_id)
+                ->where('color_id', $shoe->color_id);
         })->get();
 
         return view('shoes.preview', compact('shoe', 'colors', 'sizes'));
     }
+
 
     public function edit(Shoe $shoe)
     {

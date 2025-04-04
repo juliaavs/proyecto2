@@ -23,7 +23,7 @@ Route::get('/altaCalzado', [ShoeController::class, 'create'])->name('altaCalzado
 
 Route::get('/', function () {
     return redirect('/home');
-});
+})->name('home');
 
 Route::get('/loginPrueba', function () {
     return view('loginPrueba');
