@@ -102,9 +102,9 @@
 
                         <!-- Formulario de búsqueda: se recomienda un label oculto para accesibilidad -->
                         <li class="nav-item d-none d-md-inline">
-                            <form class="d-flex" role="search" aria-label="Search"
+                            <!-- <form class="d-flex" role="search" aria-label="Search"
                                 action="<?php echo e(route('shoes.search')); ?>" method="POST">
-                                <?php echo csrf_field(); ?>
+                                <?php echo csrf_field(); ?> -->
                                 <div class="input-group">
                                     <!-- Label oculto para accesibilidad -->
                                     <label for="search" class="visually-hidden"><?php echo e(__('Search')); ?></label>
@@ -114,13 +114,13 @@
                                         placeholder="Search" aria-label="Search" value="<?php echo e(old('search')); ?>" required>
 
                                     <!-- Botón con icono de lupa -->
-                                    <button class="btn btn-outline-success" type="submit">
+                                    <button class="btn btn-outline-success searchButton" type="submit">
                                         <i class="bi bi-search"></i>
                                         <!-- Opcional: añadir texto SR-only si deseas más accesibilidad -->
                                         <!-- <span class="visually-hidden">Buscar</span> -->
                                     </button>
                                 </div>
-                            </form>
+                            <!-- </form> -->
                         </li>
 
 
@@ -195,6 +195,9 @@
 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <?php if(Auth::check() && Auth::user()->role === 'admin'): ?>
+                                        <a class="dropdown-item" href="<?php echo e(route('profile.edit')); ?>">
+                                            Mi perfil
+                                        </a>
                                         <a class="dropdown-item" href="<?php echo e(route('shoes.index')); ?>">
                                             Productos
                                         </a>
@@ -204,7 +207,7 @@
                                         <a class="dropdown-item" href="<?php echo e(route('orders.index')); ?>">
                                             Pedidos
                                         </a>
-                                        <a class="dropdown-item" href="#">
+                                        <a class="dropdown-item" href="<?php echo e(route('admin.users.index')); ?>">
                                             Usuarios
                                         </a>
                                         <a class="dropdown-item" href="<?php echo e(route('colors.index')); ?>">
@@ -218,6 +221,10 @@
                                         </a>
                                         <a class="dropdown-item" href="<?php echo e(route('models.index')); ?>">
                                             Modelos
+                                        </a>
+                                    <?php elseif(Auth::check() && Auth::user()->role !== 'admin'): ?>
+                                        <a class="dropdown-item" href="<?php echo e(route('profile.edit')); ?>">
+                                            Mi perfil
                                         </a>
                                     <?php endif; ?>
                                     <a class="dropdown-item" href="<?php echo e(route('logout')); ?>"

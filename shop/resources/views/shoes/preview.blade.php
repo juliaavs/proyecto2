@@ -2,13 +2,17 @@
 @section('content')
 <div id="alert-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;"></div>
 
-<div class="container py-5">
+<div class="container py-5 mct">
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="row g-4 align-items-center">
                 <div class="col-md-6">
-                    <div class="bg-white rounded shadow-sm p-3">
+                    <div class="bg-white rounded shadow-sm p-3 position-relative">
                         <img id="shoe-image" src="{{ $shoe->image }}" class="img-fluid w-100 rounded object-fit-cover" alt="{{ $shoe->brand->name }} - {{ $shoe->model->name }}">
+                        
+                        @if($shoe->stock < 20)
+                            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">¡Quedan {{$shoe->stock}} unidades!</span>
+                        @endif
                     </div>
                 </div>
 

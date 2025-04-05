@@ -102,9 +102,9 @@
 
                         <!-- Formulario de búsqueda: se recomienda un label oculto para accesibilidad -->
                         <li class="nav-item d-none d-md-inline">
-                            <form class="d-flex" role="search" aria-label="Search"
+                            <!-- <form class="d-flex" role="search" aria-label="Search"
                                 action="{{ route('shoes.search') }}" method="POST">
-                                @csrf
+                                @csrf -->
                                 <div class="input-group">
                                     <!-- Label oculto para accesibilidad -->
                                     <label for="search" class="visually-hidden">{{ __('Search') }}</label>
@@ -114,13 +114,13 @@
                                         placeholder="Search" aria-label="Search" value="{{ old('search') }}" required>
 
                                     <!-- Botón con icono de lupa -->
-                                    <button class="btn btn-outline-success" type="submit">
+                                    <button class="btn btn-outline-success searchButton" type="submit">
                                         <i class="bi bi-search"></i>
                                         <!-- Opcional: añadir texto SR-only si deseas más accesibilidad -->
                                         <!-- <span class="visually-hidden">Buscar</span> -->
                                     </button>
                                 </div>
-                            </form>
+                            <!-- </form> -->
                         </li>
 
 
@@ -192,6 +192,9 @@
 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     @if (Auth::check() && Auth::user()->role === 'admin')
+                                        <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                            Mi perfil
+                                        </a>
                                         <a class="dropdown-item" href="{{ route('shoes.index') }}">
                                             Productos
                                         </a>
@@ -201,7 +204,7 @@
                                         <a class="dropdown-item" href="{{ route('orders.index') }}">
                                             Pedidos
                                         </a>
-                                        <a class="dropdown-item" href="#">
+                                        <a class="dropdown-item" href="{{ route('admin.users.index') }}">
                                             Usuarios
                                         </a>
                                         <a class="dropdown-item" href="{{ route('colors.index') }}">
@@ -215,6 +218,10 @@
                                         </a>
                                         <a class="dropdown-item" href="{{ route('models.index') }}">
                                             Modelos
+                                        </a>
+                                    @elseif (Auth::check() && Auth::user()->role !== 'admin')
+                                        <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                            Mi perfil
                                         </a>
                                     @endif
                                     <a class="dropdown-item" href="{{ route('logout') }}"

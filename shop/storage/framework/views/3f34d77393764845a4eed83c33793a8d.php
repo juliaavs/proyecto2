@@ -4,7 +4,7 @@
 
 <?php $__env->startSection('content'); ?>
     <?php if($category->active == 1): ?>
-        <div class="container py-4">
+        <div class="container py-4 mct">
             <h1 class="mb-4 text-center"><?php echo e($category->name); ?></h1>
             
             <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">

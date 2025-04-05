@@ -5,3 +5,4 @@ window.$ = $;
 window.jQuery = $;
 import './cart';
 import './footer';
+import './searcher';

@@ -131,6 +131,33 @@ class ShoeController extends Controller
         return view('shoes.preview', compact('shoe', 'colors', 'sizes'));
     }
 
+    public function buscar(Request $request)
+    {
+        $query = $request->input('q');
+
+        if (!$query) {
+            return response()->json([]);
+        }
+
+        $productos = Shoe::with(['brand', 'model'])
+            ->whereHas('model', fn($q) => $q->where('name', 'like', "%$query%"))
+            ->orWhereHas('brand', fn($q) => $q->where('name', 'like', "%$query%"))
+            ->get();
+
+        // Retornamos solo lo necesario
+        return response()->json($productos->map(function ($producto) {
+            return [
+                'id' => $producto->id,
+                'name' => $producto->model->name,
+                'brand_name' => $producto->brand->name,
+                'model_name' => $producto->model->name,
+                'price' => (float) $producto->price,
+                'discount' => (float) $producto->discount,
+                'image' => $producto->image,
+            ];
+        }));
+    }
+
 
     public function edit(Shoe $shoe)
     {
