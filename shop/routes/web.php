@@ -15,7 +15,18 @@ use App\Http\Controllers\ShoeModelController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\ProfileController;
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
+
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/users', [ProfileController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}/edit', [ProfileController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [ProfileController::class, 'update'])->name('users.update');
+});
 
 Route::get('/category/create', [CategoryController::class, 'create'])->name('altaCategoria');
 
@@ -23,7 +34,7 @@ Route::get('/altaCalzado', [ShoeController::class, 'create'])->name('altaCalzado
 
 Route::get('/', function () {
     return redirect('/home');
-});
+})->name('home');
 
 Route::get('/loginPrueba', function () {
     return view('loginPrueba');
@@ -32,6 +43,8 @@ Route::get('/loginPrueba', function () {
 Route::get('/navbar', function () {
     return view('navbar');
 });
+
+Route::get('/buscar-productos', [ShoeController::class, 'buscar']);
 
 // Route::get('/home', function () {
 //     return view('home');

@@ -53,11 +53,20 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        $category = Category::with('products')->findOrFail($id);
-        return view('categories.show', compact('category'));
+        $category = Category::findOrFail($id);
+
+        // Obtener solo los zapatos con imagen principal
+        $products = $category->products()
+            ->where('main', true)
+            ->where('active', true)
+            ->with(['brand', 'model']) // Cargar relaciones
+            ->get();
+
+        return view('categories.show', compact('category', 'products'));
     }
+
 
     /**
      * Show the form for editing the specified resource.

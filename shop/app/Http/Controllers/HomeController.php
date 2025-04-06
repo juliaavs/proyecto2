@@ -26,13 +26,23 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $ultimosProductos = Shoe::orderBy('created_at', 'desc')->take(4)->get();
-        $ultimosPedidos = Order::orderBy('created_at', 'desc')->take(4)->get();
+        $ultimosProductos = Shoe::where('active', true)
+            ->orderBy('created_at', 'desc')
+            ->take(4)
+            ->get();
 
-        return view('home', compact('ultimosProductos', 'ultimosPedidos'));
-        LOG::info('Ultimos productos: ' . $ultimosProductos);
-        //return view('home', compact('ultimosProductos'));
+        $productosDestacados = Shoe::where('active', true)
+            ->where('featured', true)
+            ->take(4)
+            ->get();
+
+        $ultimosPedidos = Order::orderBy('created_at', 'desc')
+            ->take(4)
+            ->get();
+
+        return view('home', compact('ultimosProductos', 'productosDestacados', 'ultimosPedidos'));
     }
+
 
     public function login()
     {

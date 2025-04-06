@@ -24,13 +24,19 @@
             </thead>
             <tbody>
                 @foreach ($cartItems as $key => $item)
-                    @php
-                        $subtotal = auth()->check() 
-                                    ? ($item->shoe ? $item->shoe->price * $item->quantity : 0) 
-                                    : ($item['price'] * $item['quantity']);
+                @php
+                    if (auth()->check() && isset($item->shoe)) {
+                        $price = $item->shoe->price;
+                        $discount = $item->shoe->discount ?? 0;
+                        $finalPrice = $discount > 0 ? $price * (1 - $discount / 100) : $price;
+                        $subtotal = $finalPrice * $item->quantity;
+                    } else {
+                        $finalPrice = $item['price'];
+                        $subtotal = $item['price'] * $item['quantity'];
+                    }
 
-                        $total += $subtotal;
-                    @endphp
+                    $total += $subtotal;
+                @endphp
 
                     <tr>
                         <!-- Imagen del zapato -->
@@ -82,13 +88,19 @@
                         <!-- Precio -->
                         <td class="align-middle">
                             @if(auth()->check() && isset($item->shoe))
-                                €{{ number_format($item->shoe->price, 2) }}
+                                @if ($item->shoe->discount > 0)
+                                    <del class="text-muted">€{{ number_format($item->shoe->price, 2) }}</del><br>
+                                    <span class="text-success fw-bold">€{{ number_format($finalPrice, 2) }}</span>
+                                @else
+                                    €{{ number_format($finalPrice, 2) }}
+                                @endif
                             @elseif(!auth()->check() && isset($item['price']))
                                 €{{ number_format($item['price'], 2) }}
                             @else
                                 <span class="text-danger">-</span>
                             @endif
                         </td>
+
 
                         <!-- Cantidad con botones mejorados -->
                         <td class="align-middle">

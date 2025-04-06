@@ -78,6 +78,7 @@
             <p><strong>Fecha:</strong> {{ $order->created_at->format('d/m/Y') }}</p>
             <p><strong>Cliente:</strong> {{ $order->user->name }}</p>
             <p><strong>Email:</strong> {{ $order->user->email }}</p>
+            <p><strong>Dirección:</strong> [NO PROGRAMADO AÚN]</p>
         </div>
 
         <!-- Tabla de productos -->

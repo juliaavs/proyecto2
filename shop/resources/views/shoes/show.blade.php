@@ -22,7 +22,7 @@
         }
     </style>
 
-    <div class="container">
+    <div class="container mct">
         <h2>Detalles del Producto: {{ $producto->name }}</h2>
         <img src="{{ asset('storage/products/' . $producto->image) }}" alt="Imágen de producto" class="img-fluid"
             style="max-width: 200px;">

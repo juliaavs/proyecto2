@@ -229,39 +229,96 @@ class CartController extends Controller
 }
 
 
+// public function startPayment(Request $request)
+// {
+
+//     Stripe::setApiKey(env('STRIPE_SECRET'));
+
+//     // Obtener los productos del carrito
+//     $cartItems = Cart::where('user_id', auth()->id())->with('shoe.brand', 'shoe.model')->get();
+
+//     if ($cartItems->isEmpty()) {
+//         return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío.');
+//     }
+
+//     // Crear los items para la sesión de pago
+//     $lineItems = [];
+
+//     foreach ($cartItems as $item) {
+//         $name = ($item->shoe->brand->name ?? '') . ' ' . ($item->shoe->model->name ?? 'Zapato desconocido');
+//         $basePrice = $item->shoe->price ?? 0;
+//         $discount = $item->shoe->discount ?? 0;
+
+//         $finalPrice = $discount > 0
+//             ? round($basePrice * (1 - $discount / 100), 2)
+//             : $basePrice;
+
+//         $lineItems[] = [
+//             'price_data' => [
+//                 'currency' => 'eur',
+//                 'product_data' => [
+//                     'name' => $name,
+//                 ],
+//                 'unit_amount' => intval($finalPrice * 100), // Stripe requiere céntimos
+//             ],
+//             'quantity' => $item->quantity,
+//         ];
+//     }
+
+//     try {
+//         // Crear la sesión de pago de Stripe con PayPal
+//         $session = \Stripe\Checkout\Session::create([
+//             'payment_method_types' => ['card', 'paypal'],
+//             'line_items' => $lineItems,
+//             'mode' => 'payment',
+//             'success_url' => route('payment.success'),
+//             'cancel_url' => route('cart.index'),
+//         ]);
+
+//         return redirect($session->url);
+//     } catch (\Exception $e) {
+//         Log::error('Stripe error: ' . $e->getMessage());
+//         return redirect()->route('cart.index')->with('error', 'Error al crear la sesión de pago: ' . $e->getMessage());
+//     }
+// }
+
 public function startPayment(Request $request)
 {
-
     Stripe::setApiKey(env('STRIPE_SECRET'));
 
-    // Obtener los productos del carrito
     $cartItems = Cart::where('user_id', auth()->id())->with('shoe.brand', 'shoe.model')->get();
 
     if ($cartItems->isEmpty()) {
         return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío.');
     }
 
-    // Crear los items para la sesión de pago
+    // Verificamos si hay suficiente stock
+    foreach ($cartItems as $item) {
+        if ($item->quantity > $item->shoe->stock) {
+            return redirect()->route('cart.index')->with('error', "No hay suficiente stock para {$item->shoe->brand->name} {$item->shoe->model->name}.");
+        }
+    }
+
     $lineItems = [];
+
     foreach ($cartItems as $item) {
         $name = ($item->shoe->brand->name ?? '') . ' ' . ($item->shoe->model->name ?? 'Zapato desconocido');
-        $price = $item->shoe->price ?? 0;
+        $basePrice = $item->shoe->price ?? 0;
+        $discount = $item->shoe->discount ?? 0;
+
+        $finalPrice = $discount > 0 ? round($basePrice * (1 - $discount / 100), 2) : $basePrice;
 
         $lineItems[] = [
             'price_data' => [
                 'currency' => 'eur',
-                'product_data' => [
-                    'name' => $name,
-                ],
-                'unit_amount' => intval($price * 100), // en céntimos
+                'product_data' => ['name' => $name],
+                'unit_amount' => intval($finalPrice * 100), // Stripe requiere céntimos
             ],
             'quantity' => $item->quantity,
-            
         ];
     }
 
     try {
-        // Crear la sesión de pago de Stripe con PayPal
         $session = \Stripe\Checkout\Session::create([
             'payment_method_types' => ['card', 'paypal'],
             'line_items' => $lineItems,
@@ -273,13 +330,13 @@ public function startPayment(Request $request)
         return redirect($session->url);
     } catch (\Exception $e) {
         Log::error('Stripe error: ' . $e->getMessage());
-        return redirect()->route('cart.index')->with('error', 'Error al crear la sesión de pago: ' . $e->getMessage());
+        return redirect()->route('cart.index')->with('error', 'Error al crear la sesión de pago.');
     }
 }
 
 
 
-    public function saveShipping(Request $request)
+public function saveShipping(Request $request)
 {
     $request->validate([
         'street' => 'required|string|max:255',
@@ -310,12 +367,36 @@ public function startPayment(Request $request)
    
        // Página de éxito
        
+<<<<<<< HEAD
        public function success()
 
        {
 
            return view('cart.success');
        }
+=======
+    //    public function success()
+    //    {
+    //        return view('cart.success');
+    //    }
+    public function success()
+{
+    $cartItems = Cart::where('user_id', auth()->id())->with('shoe')->get();
+
+    foreach ($cartItems as $item) {
+        if ($item->shoe && $item->shoe->stock >= $item->quantity) {
+            $item->shoe->stock -= $item->quantity;
+            $item->shoe->save();
+        }
+    }
+
+    // Vaciar el carrito
+    Cart::where('user_id', auth()->id())->delete();
+
+    return view('cart.success')->with('success', '¡Pago completado!');
+}
+
+>>>>>>> refs/remotes/origin/main
     
 
     /*
