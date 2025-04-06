@@ -50,6 +50,13 @@ class Shoe extends Model
     {
         return $this->belongsToMany(Cart::class, 'cart_shoe', 'shoe_id', 'cart_id');
     }
+
+    public function orders()
+    {
+        return $this->belongsToMany(Order::class, 'order_items', 'shoe_id', 'order_id')
+                    ->withPivot('quantity', 'size', 'color')
+                    ->withTimestamps();
+    }
     
 
 }

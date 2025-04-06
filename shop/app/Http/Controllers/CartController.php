@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Shoe;
+use App\Models\Order;
+
 //use Illuminate\Support\Facades\Session;
 
 use Stripe\Stripe;
@@ -67,25 +69,59 @@ class CartController extends Controller
         Log::info($request);
         $shoe = Shoe::findOrFail($request->product_id);
         $quantity = $request->quantity ?? 1;
-
+        
+        // Verificar si hay suficiente stock
+        if ($shoe->stock < $quantity) {
+            // Devolver mensaje de error si no hay suficiente stock
+            return response()->json([
+                'message' => "Este producto está agotado.",
+            ], 400); // Código de error 400 para indicar una solicitud incorrecta
+        }
+    
+        // Si el usuario está autenticado
         if ($this->isUserAuthenticated()) {
             $cartItem = Cart::where('user_id', auth()->id())->where('shoe_id', $shoe->id)->first();
-        
+    
             if ($cartItem) {
+                // Verificar si la cantidad total supera el stock disponible
+                if ($shoe->stock < ($cartItem->quantity + $quantity)) {
+                    return response()->json([
+                        'message' => "Este producto está agotado.",
+                    ], 400);
+                }
+    
+                // Si hay stock suficiente, actualizamos la cantidad en el carrito
                 $cartItem->quantity += $quantity;
                 $cartItem->save();
+    
+                // Producto añadido correctamente
+                return response()->json(['message' => 'Zapato agregado al carrito'], 200);
             } else {
+                // Si el producto no está en el carrito, lo agregamos con la cantidad
                 Cart::create([
                     'user_id' => auth()->id(),
                     'shoe_id' => $shoe->id,
                     'quantity' => $quantity,
                 ]);
+    
+                // Producto añadido correctamente
+                return response()->json(['message' => 'Zapato agregado al carrito'], 200);
             }
         } else {
+            // Si el usuario no está autenticado, trabajamos con la sesión
             $cart = session()->get('cart', []);
             if (isset($cart[$shoe->id])) {
+                // Verificar si la cantidad total supera el stock disponible
+                if ($shoe->stock < ($cart[$shoe->id]['quantity'] + $quantity)) {
+                    return response()->json([
+                        'message' => "Este producto está agotado.",
+                    ], 400);
+                }
+    
+                // Si hay stock suficiente, actualizamos la cantidad en el carrito
                 $cart[$shoe->id]['quantity'] += $quantity;
             } else {
+                // Si el producto no está en el carrito, lo agregamos con la cantidad
                 $cart[$shoe->id] = [
                     "name" => $shoe->brand->name . ' ' . $shoe->model->name,
                     "price" => $shoe->price,
@@ -94,10 +130,19 @@ class CartController extends Controller
                 ];
             }
             session()->put('cart', $cart);
+    
+            // Producto añadido correctamente
+            return response()->json(['message' => 'Zapato agregado al carrito'], 200);
         }
-
-        return response()->json(['message' => 'Zapato agregado al carrito']);
     }
+    
+    
+
+
+
+
+
+
 
     /**
      * Elimina un zapato del carrito.
@@ -216,210 +261,124 @@ class CartController extends Controller
     }
 
     public function checkout(Request $request)
-{
-    $user = auth()->user();
-    $cartItems = Cart::where('user_id', auth()->id())->with('shoe.brand', 'shoe.model')->get();
+    {
+        $user = auth()->user();
+        $cartItems = Cart::where('user_id', auth()->id())->with('shoe.brand', 'shoe.model')->get();
 
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío.');
+        }
 
-    if ($cartItems->isEmpty()) {
-        return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío.');
+        return view('cart.review', compact('user', 'cartItems'));
     }
 
-    return view('cart.review', compact('user', 'cartItems'));
-}
+    public function startPayment(Request $request)
+    {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
 
+        $cartItems = Cart::where('user_id', auth()->id())->with('shoe.brand', 'shoe.model')->get();
 
-// public function startPayment(Request $request)
-// {
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío.');
+        }
 
-//     Stripe::setApiKey(env('STRIPE_SECRET'));
+        // Verificamos si hay suficiente stock
+        foreach ($cartItems as $item) {
+            if ($item->quantity > $item->shoe->stock) {
+                return redirect()->route('cart.index')->with('error', "No hay suficiente stock para {$item->shoe->brand->name} {$item->shoe->model->name}.");
+            }
+        }
 
-//     // Obtener los productos del carrito
-//     $cartItems = Cart::where('user_id', auth()->id())->with('shoe.brand', 'shoe.model')->get();
+        $lineItems = [];
 
-//     if ($cartItems->isEmpty()) {
-//         return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío.');
-//     }
+        foreach ($cartItems as $item) {
+            $name = ($item->shoe->brand->name ?? '') . ' ' . ($item->shoe->model->name ?? 'Zapato desconocido');
+            $basePrice = $item->shoe->price ?? 0;
+            $discount = $item->shoe->discount ?? 0;
 
-//     // Crear los items para la sesión de pago
-//     $lineItems = [];
+            $finalPrice = $discount > 0 ? round($basePrice * (1 - $discount / 100), 2) : $basePrice;
 
-//     foreach ($cartItems as $item) {
-//         $name = ($item->shoe->brand->name ?? '') . ' ' . ($item->shoe->model->name ?? 'Zapato desconocido');
-//         $basePrice = $item->shoe->price ?? 0;
-//         $discount = $item->shoe->discount ?? 0;
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => 'eur',
+                    'product_data' => ['name' => $name],
+                    'unit_amount' => intval($finalPrice * 100), // Stripe requiere céntimos
+                ],
+                'quantity' => $item->quantity,
+            ];
+        }
 
-//         $finalPrice = $discount > 0
-//             ? round($basePrice * (1 - $discount / 100), 2)
-//             : $basePrice;
+        try {
+            $session = \Stripe\Checkout\Session::create([
+                'payment_method_types' => ['card', 'paypal'],
+                'line_items' => $lineItems,
+                'mode' => 'payment',
+                'success_url' => route('payment.success'),
+                'cancel_url' => route('cart.index'),
+            ]);
 
-//         $lineItems[] = [
-//             'price_data' => [
-//                 'currency' => 'eur',
-//                 'product_data' => [
-//                     'name' => $name,
-//                 ],
-//                 'unit_amount' => intval($finalPrice * 100), // Stripe requiere céntimos
-//             ],
-//             'quantity' => $item->quantity,
-//         ];
-//     }
-
-//     try {
-//         // Crear la sesión de pago de Stripe con PayPal
-//         $session = \Stripe\Checkout\Session::create([
-//             'payment_method_types' => ['card', 'paypal'],
-//             'line_items' => $lineItems,
-//             'mode' => 'payment',
-//             'success_url' => route('payment.success'),
-//             'cancel_url' => route('cart.index'),
-//         ]);
-
-//         return redirect($session->url);
-//     } catch (\Exception $e) {
-//         Log::error('Stripe error: ' . $e->getMessage());
-//         return redirect()->route('cart.index')->with('error', 'Error al crear la sesión de pago: ' . $e->getMessage());
-//     }
-// }
-
-public function startPayment(Request $request)
-{
-    Stripe::setApiKey(env('STRIPE_SECRET'));
-
-    $cartItems = Cart::where('user_id', auth()->id())->with('shoe.brand', 'shoe.model')->get();
-
-    if ($cartItems->isEmpty()) {
-        return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío.');
-    }
-
-    // Verificamos si hay suficiente stock
-    foreach ($cartItems as $item) {
-        if ($item->quantity > $item->shoe->stock) {
-            return redirect()->route('cart.index')->with('error', "No hay suficiente stock para {$item->shoe->brand->name} {$item->shoe->model->name}.");
+            return redirect($session->url);
+        } catch (\Exception $e) {
+            Log::error('Stripe error: ' . $e->getMessage());
+            return redirect()->route('cart.index')->with('error', 'Error al crear la sesión de pago.');
         }
     }
 
-    $lineItems = [];
-
-    foreach ($cartItems as $item) {
-        $name = ($item->shoe->brand->name ?? '') . ' ' . ($item->shoe->model->name ?? 'Zapato desconocido');
-        $basePrice = $item->shoe->price ?? 0;
-        $discount = $item->shoe->discount ?? 0;
-
-        $finalPrice = $discount > 0 ? round($basePrice * (1 - $discount / 100), 2) : $basePrice;
-
-        $lineItems[] = [
-            'price_data' => [
-                'currency' => 'eur',
-                'product_data' => ['name' => $name],
-                'unit_amount' => intval($finalPrice * 100), // Stripe requiere céntimos
-            ],
-            'quantity' => $item->quantity,
-        ];
-    }
-
-    try {
-        $session = \Stripe\Checkout\Session::create([
-            'payment_method_types' => ['card', 'paypal'],
-            'line_items' => $lineItems,
-            'mode' => 'payment',
-            'success_url' => route('payment.success'),
-            'cancel_url' => route('cart.index'),
+    public function saveShipping(Request $request)
+    {
+        $request->validate([
+            'street' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'zip_code' => 'required|string|max:20',
+            'country' => 'required|string|max:255',
         ]);
 
-        return redirect($session->url);
-    } catch (\Exception $e) {
-        Log::error('Stripe error: ' . $e->getMessage());
-        return redirect()->route('cart.index')->with('error', 'Error al crear la sesión de pago.');
+        $user = auth()->user();
+        $user->update([
+            'street' => $request->street,
+            'number' => $request->number,
+            'city' => $request->city,
+            'state' => $request->state,
+            'zip_code' => $request->zip_code,
+            'country' => $request->country,
+        ]);
+
+        return redirect()->route('cart.checkout');
     }
-}
 
-
-
-public function saveShipping(Request $request)
-{
-    $request->validate([
-        'street' => 'required|string|max:255',
-        'city' => 'required|string|max:255',
-        'state' => 'required|string|max:255',
-        'zip_code' => 'required|string|max:20',
-        'country' => 'required|string|max:255',
-    ]);
-
-    $user = auth()->user();
-    $user->update([
-        'street' => $request->street,
-        'number' => $request->number,
-        'city' => $request->city,
-        'state' => $request->state,
-        'zip_code' => $request->zip_code,
-        'country' => $request->country,
-    ]);
-
-    return redirect()->route('cart.checkout');
-}
-
-    
-    
-
-
-
-   
-       // Página de éxito
-       
-<<<<<<< HEAD
-       public function success()
-
-       {
-
-           return view('cart.success');
-       }
-=======
-    //    public function success()
-    //    {
-    //        return view('cart.success');
-    //    }
     public function success()
-{
-    $cartItems = Cart::where('user_id', auth()->id())->with('shoe')->get();
+    {
+        $cartItems = Cart::where('user_id', auth()->id())->with('shoe')->get();
 
-    foreach ($cartItems as $item) {
-        if ($item->shoe && $item->shoe->stock >= $item->quantity) {
-            $item->shoe->stock -= $item->quantity;
-            $item->shoe->save();
+        foreach ($cartItems as $item) {
+            if ($item->shoe && $item->shoe->stock >= $item->quantity) {
+                $item->shoe->stock -= $item->quantity;
+                $item->shoe->save();
+            }
         }
-    }
 
-    // Vaciar el carrito
-    Cart::where('user_id', auth()->id())->delete();
+        // Crear el pedido en la base de datos
+        $order = Order::create([
+            'user_id' => auth()->id(),
+            'total' => ($item->shoe->price * $item->quantity), // Método para calcular el total
+            'status' => 'completado', // O el estado que desees
+        ]);
 
-    return view('cart.success')->with('success', '¡Pago completado!');
-}
-
->>>>>>> refs/remotes/origin/main
-    
-
-    /*
-    public function success(Request $request)
-{
-    // Si el usuario está autenticado, vaciar el carrito en la base de datos
-    if (auth()->check()) {
-        $userCart = Cart::where('user_id', auth()->id())->first();
-
-        // Eliminar todos los productos del carrito del usuario (de la tabla intermedia cart_shoe)
-        if ($userCart) {
-            $userCart->shoe()->detach();  // Elimina los productos asociados con el carrito
+        /*
+        // Asociamos los productos del carrito con el pedido
+        foreach ($cartItems as $item) {
+            $order->products()->attach($item->shoe->id, [
+                'quantity' => $item->quantity,
+                'size' => $item->size ?? null, // Si tienes tamaño
+                'color' => $item->color ?? null, // Si tienes color
+            ]);
         }
+        */
+
+        // Vaciar el carrito
+        Cart::where('user_id', auth()->id())->delete();
+
+        return view('cart.success')->with('success', '¡Pago completado!');
     }
-
-    // Otras acciones que necesites (por ejemplo, marcar el pedido como pagado en la base de datos)
-    return view('cart.success');
-}
-
-       */
-
-
-
-
-
 }

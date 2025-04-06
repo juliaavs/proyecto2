@@ -17,6 +17,7 @@ class Order extends Model
      */
     protected $fillable = [
         'user_id',
+        'total',
         'status',
         // agrega aquí otras columnas que quieras poder rellenar
     ];
@@ -27,14 +28,24 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function shoes(){
-        return $this->belongsToMany(Shoe::class, 'cart_shoe', 'order_id', 'shoe_id');
+     public function shoes()
+    {
+        return $this->belongsToMany(Shoe::class, 'order_items','order_id', 'product_id') // Especifica la tabla intermedia 'order_items'
+                    ->withPivot('quantity') // Incluye las columnas adicionales de la tabla intermedia
+                    ->withTimestamps();
     }
 
     public function items()
     {
         //sino quitar el 'order_id'
         return $this->hasMany(OrderItem::class, 'order_id');  // Asumiendo que tienes un modelo OrderItem
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Shoe::class, 'order_shoe')
+                    ->withPivot('quantity', 'size', 'color')
+                    ->withTimestamps();
     }
 
 

@@ -226,6 +226,9 @@
                                         <a class="dropdown-item" href="<?php echo e(route('profile.edit')); ?>">
                                             Mi perfil
                                         </a>
+                                        <a class="dropdown-item" href="<?php echo e(route('orders.mis')); ?>">
+                                            Mis Pedidos
+                                        </a>
                                     <?php endif; ?>
                                     <a class="dropdown-item" href="<?php echo e(route('logout')); ?>"
                                         onclick="event.preventDefault();

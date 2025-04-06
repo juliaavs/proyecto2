@@ -223,6 +223,9 @@
                                         <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                             Mi perfil
                                         </a>
+                                        <a class="dropdown-item" href="{{ route('orders.mis') }}">
+                                            Mis Pedidos
+                                        </a>
                                     @endif
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                         onclick="event.preventDefault();

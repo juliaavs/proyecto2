@@ -22,13 +22,19 @@
             </thead>
             <tbody>
                 <?php $__currentLoopData = $cartItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <?php
-                        $subtotal = auth()->check() 
-                                    ? ($item->shoe ? $item->shoe->price * $item->quantity : 0) 
-                                    : ($item['price'] * $item['quantity']);
+                <?php
+                    if (auth()->check() && isset($item->shoe)) {
+                        $price = $item->shoe->price;
+                        $discount = $item->shoe->discount ?? 0;
+                        $finalPrice = $discount > 0 ? $price * (1 - $discount / 100) : $price;
+                        $subtotal = $finalPrice * $item->quantity;
+                    } else {
+                        $finalPrice = $item['price'];
+                        $subtotal = $item['price'] * $item['quantity'];
+                    }
 
-                        $total += $subtotal;
-                    ?>
+                    $total += $subtotal;
+                ?>
 
                     <tr>
                         <!-- Imagen del zapato -->
@@ -83,8 +89,13 @@
                         <!-- Precio -->
                         <td class="align-middle">
                             <?php if(auth()->check() && isset($item->shoe)): ?>
-                                €<?php echo e(number_format($item->shoe->price, 2)); ?>
+                                <?php if($item->shoe->discount > 0): ?>
+                                    <del class="text-muted">€<?php echo e(number_format($item->shoe->price, 2)); ?></del><br>
+                                    <span class="text-success fw-bold">€<?php echo e(number_format($finalPrice, 2)); ?></span>
+                                <?php else: ?>
+                                    €<?php echo e(number_format($finalPrice, 2)); ?>
 
+                                <?php endif; ?>
                             <?php elseif(!auth()->check() && isset($item['price'])): ?>
                                 €<?php echo e(number_format($item['price'], 2)); ?>
 
@@ -92,6 +103,7 @@
                                 <span class="text-danger">-</span>
                             <?php endif; ?>
                         </td>
+
 
                         <!-- Cantidad con botones mejorados -->
                         <td class="align-middle">

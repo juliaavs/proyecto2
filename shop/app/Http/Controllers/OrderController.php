@@ -7,6 +7,8 @@ use App\Models\Order;
 
 class OrderController extends Controller
 {
+
+ 
     /**
      * Display a listing of the resource.
      */
@@ -96,4 +98,24 @@ class OrderController extends Controller
             ->get();
         return view('orders.allOrders', compact('orders'));
     }
+
+    public function misPedidos()
+{
+    $user = auth()->user();
+
+    $orders = Order::with('shoes') // Cambia 'products' si tu relación se llama diferente, como 'shoes'
+        ->where('user_id', $user->id)
+        ->latest()
+        ->get();
+
+    return view('orders.mis-pedidos', compact('orders'));
+}
+
+
+
+
+
+
+
+
 }

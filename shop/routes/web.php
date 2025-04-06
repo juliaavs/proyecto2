@@ -50,6 +50,10 @@ Route::get('/buscar-productos', [ShoeController::class, 'buscar']);
 //     return view('home');
 // });
 
+//mis pedidos
+Route::get('/mis-pedidos', [OrderController::class, 'misPedidos'])->name('orders.mis')->middleware('auth');
+
+
 //pdf
 Route::get('/invoice/{order_id}', [InvoiceController::class, 'generateInvoice'])->name('invoice.download');
 // filepath: /Users/julia/Desktop/proyecto2/shop/routes/web.php
