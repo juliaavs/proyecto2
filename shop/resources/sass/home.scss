@@ -1,9 +1,15 @@
+
+
 .custom-video {
     width: 100%;
     /* Ocupa todo el ancho */
-    height: 70vh;
-    /* Ajusta la altura al 50% de la pantalla */
+    height: 100%;
+    /* Ocupa todo el alto */
     object-fit: cover;
+    padding: 0;
+   
+    /* Ajusta la altura al 50% de la pantalla */
+    /*object-fit: cover;
     /* Recorta el video para que se vea bien */
 }
 

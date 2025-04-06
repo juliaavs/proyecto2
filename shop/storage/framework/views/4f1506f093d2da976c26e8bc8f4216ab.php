@@ -1,7 +1,7 @@
 <?php $__env->startSection('content'); ?>
     <div class="container mct">
         <video class="custom-video" autoplay loop muted>
-            <source src="<?php echo e(asset('videos/videoHome.mp4')); ?>" type="video/mp4">
+            <source src="<?php echo e(asset('videos/video.webm')); ?>" type="video/webm">
             Tu navegador no soporta videos.
         </video>
         <br>
@@ -115,10 +115,7 @@
             </div>
         </div>
 
-        <!-- Banner de Bike -->
-        <div class="container mt-4 text-center">
-            <img src="https://postersbase.com/cdn/shop/articles/kanye-west_6a1e735a-5683-4da6-ae1d-2562f2c25af6.png?v=1716304046" alt="Banner de Bicicletas" class="img-fluid mb-2" style="width: 100% important; border-radius: 0px;">
-        </div>
+       
     </div>
 <?php $__env->stopSection(); ?>
 
