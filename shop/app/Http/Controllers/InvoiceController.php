@@ -25,6 +25,15 @@ class InvoiceController extends Controller
     return $pdf->download("invoice_{$order->id}.pdf");
     }
 
+    
+    public function downloadInvoice($order_id)
+{
+    // Llama a la función generateInvoice para generar y descargar la factura
+    return $this->generateInvoice($order_id);
+}
+
+
+
 
 
 

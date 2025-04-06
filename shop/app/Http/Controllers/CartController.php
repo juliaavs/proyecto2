@@ -311,7 +311,9 @@ public function startPayment(Request $request)
        // Página de éxito
        
        public function success()
+
        {
+
            return view('cart.success');
        }
     

@@ -39,8 +39,9 @@ Route::get('/navbar', function () {
 
 //pdf
 Route::get('/invoice/{order_id}', [InvoiceController::class, 'generateInvoice'])->name('invoice.download');
-
-
+// filepath: /Users/julia/Desktop/proyecto2/shop/routes/web.php
+//Route::get('/success/{order_id}', [CartController::class, 'success'])->name('payment.success');
+Route::get('/factura/{order_id}/descargar', [InvoiceController::class, 'downloadInvoice'])->name('invoice.download');
 //merchandising
 Route::get('/merchandising', function () {
     return view('merchandising.merchandising'); // Coincide con la ubicación de la vista
